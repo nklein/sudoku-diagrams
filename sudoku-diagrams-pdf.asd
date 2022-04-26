@@ -3,9 +3,9 @@
 (asdf:defsystem #:sudoku-diagrams-pdf
   :description "Utilities for outputting sudoku diagrams to PDF"
   :author "Patrick Stein <pat@nklein.com>"
-  :version "0.1.20220425"
+  :version "0.2.20220426"
   :license "UNLICENSE"
-  :depends-on (#:alexandria #:cl-pdf #:sudoku-diagrams)
+  :depends-on (#:alexandria #:cl-pdf (:version #:sudoku-diagrams "0.2.20220426"))
   :components
   ((:static-file "README.md")
    (:static-file "UNLICENSE.txt")

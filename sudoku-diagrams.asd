@@ -3,7 +3,7 @@
 (asdf:defsystem #:sudoku-diagrams
   :description "Utilities for generating sudoku diagrams"
   :author "Patrick Stein <pat@nklein.com>"
-  :version "0.1.20220425"
+  :version "0.2.20220426"
   :license "UNLICENSE"
   :depends-on (#:alexandria)
   :components

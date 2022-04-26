@@ -1,8 +1,24 @@
 (in-package #:sudoku-diagrams-pdf)
 
+(defun maximum-string-width (strings size)
+  (let ((font (pdf:get-font *row-column-label-font*)))
+    (loop :for string :in strings
+       :maximizing (compute-string-metrics string font size))))
+
+(defun get-extra-rows-columns (diagram)
+  (let* ((row-labels (sudoku-diagram-row-labels diagram))
+         (extra-left (if (sudoku-diagram-row-labels diagram)
+                        (+ (maximum-string-width row-labels *row-column-label-font-proportion*) 1/4)
+                        0))
+         (extra-right 0)
+         (extra-top (if (sudoku-diagram-name diagram) (+ *title-font-proportion* 1/4) 0))
+         (extra-bottom (if (sudoku-diagram-column-labels diagram) (+ *row-column-label-font-proportion* 1/4) 0)))
+    (values extra-left extra-right extra-top extra-bottom)))
+
 (defun aspect-ratio-for-diagram (diagram)
-  (declare (ignore diagram))
-  1)
+  (multiple-value-bind (left right top bottom) (get-extra-rows-columns diagram)
+    (/ (+ +sudoku-rows+ left right)
+       (+ +sudoku-columns+ top bottom))))
 
 (defun draw-sudoku-grid-cells (cell-width cell-height)
   (let ((oo (/ *cell-stroke-width* 4)))
@@ -90,10 +106,59 @@
              (let ((labeler (make-cell-labeler digit-string font font-size)))
                (invoke-with-cell-bounds labeler index cell-width cell-height))))))
 
+(defun draw-centered-title (title diagram-width cell-height)
+  (when title
+    (let* ((font (pdf:get-font *title-font*))
+           (font-size (* *title-font-proportion* cell-height))
+           (width (compute-string-metrics title font font-size)))
+      (pdf:in-text-mode
+        (pdf:set-font font font-size)
+        (apply #'pdf:set-rgb-fill *title-font-rgb*)
+        (pdf:move-text (/ (- diagram-width width) 2) (- (/ cell-height 4) font-size))
+        (pdf:draw-text title)))))
+
+(defun draw-sudoku-grid-itself (diagram grid-width grid-height)
+  (draw-sudoku-grid-background grid-width grid-height)
+  (draw-highlighted (sudoku-diagram-highlighted diagram) grid-width grid-height)
+  (draw-marked (sudoku-diagram-marked diagram) grid-width grid-height)
+  (draw-givens (sudoku-diagram-givens diagram) grid-width grid-height)
+  (draw-sudoku-grid grid-width grid-height))
+
+(defun draw-column-labels (strings cell-width cell-height x-offset)
+  (let ((font (pdf:get-font *row-column-label-font*))
+        (font-size (* *row-column-label-font-proportion* cell-height)))
+    (pdf:in-text-mode
+      (pdf:set-font font font-size)
+      (apply #'pdf:set-rgb-fill *row-column-label-font-rgb*)
+      (loop :for string :in strings
+         :for cx :from x-offset :by cell-width
+         :do (let ((width (compute-string-metrics string font font-size)))
+               (pdf:with-saved-state
+                 (pdf:move-text (+ cx (/ (- cell-width width) 2))
+                                (- font-size *grid-stroke-width* (/ cell-height 4)))
+                 (pdf:draw-text string)))))))
+
+(defun draw-row-labels (strings cell-width cell-height)
+  (let* ((font (pdf:get-font *row-column-label-font*))
+         (font-size (* *row-column-label-font-proportion* cell-height))
+         (max-width (maximum-string-width strings font-size)))
+    (pdf:in-text-mode
+      (pdf:set-font font font-size)
+      (apply #'pdf:set-rgb-fill *row-column-label-font-rgb*)
+      (loop :for string :in strings
+         :for cy :from (* +sudoku-rows+ cell-height) :by (- cell-height)
+         :for cx :from (/ cell-width 2) :by cell-width
+         :do (let ((width (compute-string-metrics string font font-size)))
+               (pdf:with-saved-state
+                 (pdf:move-text (- max-width width *grid-stroke-width*)
+                                cy)
+                 #+not
+                 (pdf:move-text (- cell-width (+ (/ cell-width 4) *grid-stroke-width* width))
+                                cy)
+                 (pdf:draw-text string)))))))
+
 (defun sudoku-diagram-as-pdf (diagram nominal-width nominal-height)
   (pdf:with-saved-state
-    (pdf:translate 0 (- nominal-height))
-
     (labels ((limit (n max-n)
                (cond
                  ((minusp n)
@@ -104,21 +169,40 @@
                   n)))
 
              (limit-width (w aspect-ratio)
-               (min (limit w nominal-width)
-                    (* (limit (/ w aspect-ratio) nominal-height)
-                       aspect-ratio))))
+               (let ((by-width (limit w nominal-width))
+                     (by-height (* (limit (/ w aspect-ratio) nominal-height)
+                                   aspect-ratio)))
+                 (format t "~D + ~D => ~D, ~D~%"
+                         (* 1.0 w) (* 1.0 aspect-ratio)
+                         (* 1.0 by-width) (* 1.0 by-height))
+                 (min by-width by-height))))
 
-      (let* ((aspect-ratio (aspect-ratio-for-diagram diagram))
-             (width (limit-width nominal-width aspect-ratio))
-             (height (* width aspect-ratio))
-             (grid-width width)
-             (grid-height height))
-        (pdf:translate (/ (- nominal-width width) 2) (/ (- height nominal-height) 2))
-        (draw-sudoku-grid-background grid-width grid-height)
-        (draw-highlighted (sudoku-diagram-highlighted diagram) grid-width grid-height)
-        (draw-marked (sudoku-diagram-marked diagram) grid-width grid-height)
-        (draw-givens (sudoku-diagram-givens diagram) grid-width grid-height)
-        (draw-sudoku-grid grid-width grid-height)))))
+      (multiple-value-bind (left right top bottom) (get-extra-rows-columns diagram)
+        (let* ((effective-rows (+ +sudoku-rows+ top bottom))
+               (effective-columns (+ +sudoku-columns+ left right))
+               (aspect-ratio (/ effective-columns effective-rows))
+               (width (limit-width nominal-width aspect-ratio))
+               (height (/ width aspect-ratio))
+               (cell-width (/ width effective-columns))
+               (cell-height (/ height effective-rows))
+               (grid-width (* cell-width +sudoku-columns+))
+               (grid-height (* cell-height +sudoku-rows+)))
+
+          (pdf:translate (/ (- nominal-width width) 2) (/ (- height nominal-height) 2))
+
+          (draw-centered-title (sudoku-diagram-name diagram) width cell-height)
+
+          (pdf:translate 0 (- height))
+
+          (pdf:with-saved-state
+            (pdf:translate (* cell-width left) (* cell-height bottom))
+            (draw-sudoku-grid-itself diagram grid-width grid-height))
+
+          (draw-row-labels (sudoku-diagram-row-labels diagram) cell-width cell-height)
+          (draw-column-labels (sudoku-diagram-column-labels diagram)
+                              cell-width cell-height
+                              (* left cell-width))
+          (values width height))))))
 
 (defmacro destructure-bounds ((x y w h) bounds &body body)
   (let ((b (gensym "BOUNDS")))

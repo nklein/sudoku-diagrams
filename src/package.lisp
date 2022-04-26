@@ -40,4 +40,7 @@
            :sudoku-diagram-givens
            :sudoku-diagram-highlighted
            :sudoku-diagram-marked
-           :make-sudoku-diagram))
+           :sudoku-diagram-column-labels
+           :sudoku-diagram-row-labels
+           :make-sudoku-diagram
+           :get-alt-text))

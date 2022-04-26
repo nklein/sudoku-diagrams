@@ -35,3 +35,10 @@
        (deftype ,type ()
          `(and list
                (satisfies ,',predicate))))))
+
+
+(deflisttype list-of-string list-of-string-p stringp)
+
+
+(defun format-list (items)
+  (format nil "~{~#[~;~A~;~A and ~A~:;~@{~A~#[~;, and ~:;, ~]~}~]~}" items))

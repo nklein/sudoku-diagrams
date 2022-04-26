@@ -1,5 +1,20 @@
 (in-package #:sudoku-diagrams-pdf)
 
+(defun compute-string-metrics (string font font-size)
+  (let ((ascender 0)
+        (descender (pdf:get-font-descender font font-size))
+        (width 0))
+    (loop :for prev-char := nil :then char
+       :for char :across string
+       :do (when prev-char
+             (incf width (pdf:get-kerning prev-char char font font-size)))
+       :do (multiple-value-bind (char-width char-ascender char-descender)
+               (pdf:get-char-size char font font-size)
+             (setf ascender (max ascender char-ascender))
+             (setf descender (min descender char-descender))
+             (incf width char-width)))
+    (values width ascender descender)))
+
 (defun invoke-with-cell-bounds (fn index cell-width cell-height)
   (with-index-row-col (r c) index
     (let ((cx (* (1- c) cell-width))
@@ -8,8 +23,8 @@
 
 (defun make-cell-labeler (string font font-size)
   (lambda (cx cy cell-width cell-height)
-    (let* ((char-width (pdf:get-char-width (elt string 0) font font-size))
-           (x (+ cx (/ (- cell-width char-width) 2)))
+    (let* ((string-width (compute-string-metrics string font font-size))
+           (x (+ cx (/ (- cell-width string-width) 2)))
            (y (+ cy (- cell-height font-size))))
       (pdf:in-text-mode
         (pdf:set-font font font-size)

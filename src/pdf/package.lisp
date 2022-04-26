@@ -4,7 +4,19 @@
   (:export :points
            :inches)
 
-  (:export :*cell-stroke-rgb*
+  (:export :*title-font*
+           :*title-font-rgb*
+           :*title-font-proportion*
+
+           :*row-column-label-font*
+           :*row-column-label-font-rgb*
+           :*row-column-label-font-proportion*
+
+           :*digit-font*
+           :*digit-font-rgb*
+           :*given-digit-font-proportion*
+
+           :*cell-stroke-rgb*
            :*cell-stroke-width*
            :*cell-fill-width*
            :*box-stroke-rgb*
@@ -13,10 +25,6 @@
            :*grid-stroke-width*
 
            :*highlight-fill-rgb*
-
-           :*digit-font*
-           :*digit-font-rgb*
-           :*given-digit-font-proportion*
 
            :*diamond-stroke-rgb*
            :*diamond-stroke-width*

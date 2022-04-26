@@ -53,10 +53,10 @@
                common-area))
 
       (t
-       (format nil "~A~P ~{~#[~;~A~;~A and ~A~:;~@{~A~#[~;, and ~:;, ~]~}~]~} in ~A"
+       (format nil "~A~P ~A in ~A"
                range-name
                (length ns)
-               (mapcar #'1+ ns)
+               (format-list (mapcar #'1+ ns))
                common-area)))))
 
 (defun make-partial-row-area (r a b)
