@@ -3,7 +3,9 @@
 (alexandria:define-constant +sudoku-digits+ 9)
 (alexandria:define-constant +sudoku-rows+ 9)
 (alexandria:define-constant +sudoku-columns+ 9)
-(alexandria:define-constant +sudoku-boxes+ 9)
+(alexandria:define-constant +sudoku-box-rows+ 3)
+(alexandria:define-constant +sudoku-box-columns+ 3)
+(alexandria:define-constant +sudoku-boxes+ (* +sudoku-box-rows+ +sudoku-box-columns+))
 (alexandria:define-constant +sudoku-cells+ (* +sudoku-rows+ +sudoku-columns+))
 
 ;;; other code here depends on these being equal
@@ -42,3 +44,19 @@
   (check-type r sudoku-row-number)
   (check-type c sudoku-column-number)
   (+ (* (1- r) +sudoku-columns+) (1- c)))
+
+(declaim (inline index-row))
+(defun index-row (index)
+  (1+ (nth-value 0 (floor index +sudoku-columns+))))
+
+(declaim (inline index-column))
+(defun index-column (index)
+  (1+ (nth-value 1 (floor index +sudoku-columns+))))
+
+(defmacro with-index-row-col ((r c) index &body body)
+  (let ((rr (gensym "R"))
+        (cc (gensym "C")))
+    `(multiple-value-bind (,rr ,cc) (floor ,index +sudoku-columns+)
+       (let ((,r (1+,rr))
+             (,c (1+,cc)))
+         ,@body))))

@@ -3,6 +3,9 @@
 
   (:export :+sudoku-digits+
            :+sudoku-rows+
+           :+sudoku-columns+
+           :+sudoku-box-rows+
+           :+sudoku-box-columns+
            :+sudoku-boxes+
            :+sudoku-cells+
            :sudoku-digit
@@ -33,4 +36,8 @@
            :add-known-areas)
 
   (:export :sudoku-diagram
+           :sudoku-diagram-name
+           :sudoku-diagram-givens
+           :sudoku-diagram-highlighted
+           :sudoku-diagram-marked
            :make-sudoku-diagram))
