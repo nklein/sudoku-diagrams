@@ -96,7 +96,7 @@
 (defun draw-givens (givens width height)
   (let* ((cell-width (/ width +sudoku-columns+))
          (cell-height (/ height +sudoku-rows+))
-         (font (pdf:get-font "Helvetica"))
+         (font (pdf:get-font *digit-font*))
          (font-size (* *given-digit-font-proportion* cell-height)))
 
     (apply #'pdf:set-rgb-fill *digit-font-rgb*)
