@@ -145,7 +145,7 @@
       (draw:set-font font font-size)
       (apply #'draw:set-rgb-fill *row-column-label-font-rgb*)
       (loop :for string :in strings
-         :for cy :from (* +sudoku-rows+ cell-height) :by (- cell-height)
+         :for cy :downfrom (* +sudoku-rows+ cell-height) :above 0 :by cell-height
          :for cx :from (/ cell-width 2) :by cell-width
          :do (let ((width (compute-string-metrics string font font-size)))
                (draw:with-saved-state
