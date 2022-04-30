@@ -1,7 +1,7 @@
-(in-package #:sudoku-diagrams-pdf)
+(in-package #:sudoku-diagrams-draw)
 
 (defun maximum-string-width (strings size)
-  (let ((font (pdf:get-font *row-column-label-font*)))
+  (let ((font (draw:get-font *row-column-label-font*)))
     (loop :for string :in strings
        :maximizing (compute-string-metrics string font size))))
 
@@ -26,10 +26,10 @@
        :for cy := (* y cell-height)
        :do (loop :for x :below 9
               :for cx := (* x cell-width)
-              :do (pdf:rectangle (- cx oo) (- cy oo)
+              :do (draw:rectangle (- cx oo) (- cy oo)
                                  (+ cell-width oo oo)
                                  (+ cell-height oo oo)))))
-  (pdf:close-and-stroke))
+  (draw:close-and-stroke))
 
 (defun draw-sudoku-grid-boxes (box-width box-height)
   (let ((oo (/ *box-stroke-width* 4)))
@@ -37,20 +37,20 @@
        :for by := (* y box-height)
        :do (loop :for x :below 3
               :for bx := (* x box-width)
-              :do (pdf:rectangle (- bx oo) (- by oo)
+              :do (draw:rectangle (- bx oo) (- by oo)
                                  (+ box-width oo oo)
                                  (+ box-height oo oo)))))
-  (pdf:close-and-stroke))
+  (draw:close-and-stroke))
 
 (defun draw-sudoku-grid-outline (width height)
   (let ((oo (/ *grid-stroke-width* 4)))
-    (pdf:rectangle (- oo) (- oo) (+ width oo oo) (+ height oo oo)))
-  (pdf:close-and-stroke))
+    (draw:rectangle (- oo) (- oo) (+ width oo oo) (+ height oo oo)))
+  (draw:close-and-stroke))
 
 (defun draw-sudoku-grid-background (width height)
-  (apply #'pdf:set-rgb-fill *cell-fill-rgb*)
-  (pdf:rectangle 0 0 width height)
-  (pdf:close-and-fill))
+  (apply #'draw:set-rgb-fill *cell-fill-rgb*)
+  (draw:rectangle 0 0 width height)
+  (draw:close-and-fill))
 
 (defun draw-sudoku-grid (width height)
   (let ((box-width (/ width +sudoku-box-columns+))
@@ -58,35 +58,34 @@
         (cell-width (/ width +sudoku-columns+))
         (cell-height (/ height +sudoku-rows+)))
 
-    (apply #'pdf:set-rgb-stroke *cell-stroke-rgb*)
-    (pdf:set-line-width *cell-stroke-width*)
+    (apply #'draw:set-rgb-stroke *cell-stroke-rgb*)
+    (draw:set-line-width *cell-stroke-width*)
     (draw-sudoku-grid-cells cell-width cell-height)
 
-    (apply #'pdf:set-rgb-stroke *box-stroke-rgb*)
-    (pdf:set-line-width *box-stroke-width*)
+    (apply #'draw:set-rgb-stroke *box-stroke-rgb*)
+    (draw:set-line-width *box-stroke-width*)
     (draw-sudoku-grid-boxes box-width box-height)
-    (pdf:close-and-stroke)
 
-    (apply #'pdf:set-rgb-stroke *grid-stroke-rgb*)
-    (pdf:set-line-width *grid-stroke-width*)
+    (apply #'draw:set-rgb-stroke *grid-stroke-rgb*)
+    (draw:set-line-width *grid-stroke-width*)
     (draw-sudoku-grid-outline width height)))
 
 (defun draw-highlighted (highlighted-areas width height)
   (let ((cell-width (/ width +sudoku-columns+))
         (cell-height (/ height +sudoku-rows+)))
 
-    (apply #'pdf:set-rgb-fill *highlight-fill-rgb*)
+    (apply #'draw:set-rgb-fill *highlight-fill-rgb*)
     (dolist (area highlighted-areas)
       (dolist (index (sudoku-grid-area-indexes area))
         (with-index-row-col (r c) index
-          (pdf:rectangle (* (1- c) cell-width) (* (- +sudoku-rows+ r) cell-height) cell-width cell-height))))
-    (pdf:close-and-fill)))
+          (draw:rectangle (* (1- c) cell-width) (* (- +sudoku-rows+ r) cell-height) cell-width cell-height))))
+    (draw:close-and-fill)))
 
 (defun draw-marked (marked width height)
   (let* ((cell-width (/ width +sudoku-columns+))
          (cell-height (/ height +sudoku-rows+)))
 
-    (apply #'pdf:set-rgb-fill *digit-font-rgb*)
+    (apply #'draw:set-rgb-fill *digit-font-rgb*)
     (loop :for (marker areas) :on marked :by #'cddr
        :for marker-fn := (get-marker-function marker)
        :do (dolist (area (alexandria:ensure-list areas))
@@ -96,10 +95,10 @@
 (defun draw-givens (givens width height)
   (let* ((cell-width (/ width +sudoku-columns+))
          (cell-height (/ height +sudoku-rows+))
-         (font (pdf:get-font *digit-font*))
+         (font (draw:get-font *digit-font*))
          (font-size (* *given-digit-font-proportion* cell-height)))
 
-    (apply #'pdf:set-rgb-fill *digit-font-rgb*)
+    (apply #'draw:set-rgb-fill *digit-font-rgb*)
     (loop :for (digit area) :on givens :by #'cddr
        :for digit-string := (format nil "~D" digit)
        :do (dolist (index (sudoku-grid-area-indexes area))
@@ -108,14 +107,14 @@
 
 (defun draw-centered-title (title diagram-width cell-height)
   (when title
-    (let* ((font (pdf:get-font *title-font*))
+    (let* ((font (draw:get-font *title-font*))
            (font-size (* *title-font-proportion* cell-height))
            (width (compute-string-metrics title font font-size)))
-      (pdf:in-text-mode
-        (pdf:set-font font font-size)
-        (apply #'pdf:set-rgb-fill *title-font-rgb*)
-        (pdf:move-text (/ (- diagram-width width) 2) (- (/ cell-height 4) font-size))
-        (pdf:draw-text title)))))
+      (draw:in-text-mode
+        (draw:set-font font font-size)
+        (apply #'draw:set-rgb-fill *title-font-rgb*)
+        (draw:move-text (/ (- diagram-width width) 2) (- (/ cell-height 4) font-size))
+        (draw:draw-text title)))))
 
 (defun draw-sudoku-grid-itself (diagram grid-width grid-height)
   (draw-sudoku-grid-background grid-width grid-height)
@@ -125,40 +124,37 @@
   (draw-sudoku-grid grid-width grid-height))
 
 (defun draw-column-labels (strings cell-width cell-height x-offset)
-  (let ((font (pdf:get-font *row-column-label-font*))
+  (let ((font (draw:get-font *row-column-label-font*))
         (font-size (* *row-column-label-font-proportion* cell-height)))
-    (pdf:in-text-mode
-      (pdf:set-font font font-size)
-      (apply #'pdf:set-rgb-fill *row-column-label-font-rgb*)
+    (draw:in-text-mode
+      (draw:set-font font font-size)
+      (apply #'draw:set-rgb-fill *row-column-label-font-rgb*)
       (loop :for string :in strings
          :for cx :from x-offset :by cell-width
          :do (let ((width (compute-string-metrics string font font-size)))
-               (pdf:with-saved-state
-                 (pdf:move-text (+ cx (/ (- cell-width width) 2))
+               (draw:with-saved-state
+                 (draw:move-text (+ cx (/ (- cell-width width) 2))
                                 (- font-size *grid-stroke-width* (/ cell-height 4)))
-                 (pdf:draw-text string)))))))
+                 (draw:draw-text string)))))))
 
 (defun draw-row-labels (strings cell-width cell-height)
-  (let* ((font (pdf:get-font *row-column-label-font*))
+  (let* ((font (draw:get-font *row-column-label-font*))
          (font-size (* *row-column-label-font-proportion* cell-height))
          (max-width (maximum-string-width strings font-size)))
-    (pdf:in-text-mode
-      (pdf:set-font font font-size)
-      (apply #'pdf:set-rgb-fill *row-column-label-font-rgb*)
+    (draw:in-text-mode
+      (draw:set-font font font-size)
+      (apply #'draw:set-rgb-fill *row-column-label-font-rgb*)
       (loop :for string :in strings
          :for cy :from (* +sudoku-rows+ cell-height) :by (- cell-height)
          :for cx :from (/ cell-width 2) :by cell-width
          :do (let ((width (compute-string-metrics string font font-size)))
-               (pdf:with-saved-state
-                 (pdf:move-text (- max-width width *grid-stroke-width*)
+               (draw:with-saved-state
+                 (draw:move-text (- max-width width *grid-stroke-width*)
                                 cy)
-                 #+not
-                 (pdf:move-text (- cell-width (+ (/ cell-width 4) *grid-stroke-width* width))
-                                cy)
-                 (pdf:draw-text string)))))))
+                 (draw:draw-text string)))))))
 
-(defun sudoku-diagram-as-pdf (diagram nominal-width nominal-height)
-  (pdf:with-saved-state
+(defun draw-sudoku-diagram (diagram nominal-width nominal-height)
+  (draw:with-saved-state
     (labels ((limit (n max-n)
                (cond
                  ((minusp n)
@@ -188,14 +184,14 @@
                (grid-width (* cell-width +sudoku-columns+))
                (grid-height (* cell-height +sudoku-rows+)))
 
-          (pdf:translate (/ (- nominal-width width) 2) (/ (- height nominal-height) 2))
+          (draw:translate (/ (- nominal-width width) 2) (/ (- height nominal-height) 2))
 
           (draw-centered-title (sudoku-diagram-name diagram) width cell-height)
 
-          (pdf:translate 0 (- height))
+          (draw:translate 0 (- height))
 
-          (pdf:with-saved-state
-            (pdf:translate (* cell-width left) (* cell-height bottom))
+          (draw:with-saved-state
+            (draw:translate (* cell-width left) (* cell-height bottom))
             (draw-sudoku-grid-itself diagram grid-width grid-height))
 
           (draw-row-labels (sudoku-diagram-row-labels diagram) cell-width cell-height)
@@ -204,21 +200,34 @@
                               (* left cell-width))
           (values width height))))))
 
-(defmacro destructure-bounds ((x y w h) bounds &body body)
-  (let ((b (gensym "BOUNDS")))
-    `(let* ((,b ,bounds)
-            (,x (elt ,b 0))
-            (,y (elt ,b 1))
-            (,w (- (elt ,b 2) ,x))
-            (,h (- (elt ,b 3) ,y)))
-       ,@body)))
+(defun normalize-margin (margin)
+  (or (when (numberp margin)
+        margin)
+      0))
 
-(defun sudoku-diagram-to-pdf-file (filename diagram width height)
-  (pdf:with-document ()
-    (pdf:with-page (:bounds (vector 0 0 (+ width (inches 1)) (+ height (inches 1))))
-      (pdf:set-line-width 2)
-      (destructure-bounds (x y w h) (pdf:bounds pdf:*page*)
-        (pdf:translate (+ x (/ w 2)) (+ y h (inches -0.5))))
-      (pdf:translate (/ (- width) 2) 0)
-      (sudoku-diagram-as-pdf diagram width height))
-    (pdf:write-document filename)))
+(defun validate-margin (margin width height)
+  (assert (and (< (* margin 2) width)
+               (< (* margin 2) height))
+          (width height margin)
+          "Twice the MARGIN (~D) must be smaller than the WIDTH (~D) and HEIGHT (~D)"
+          :args (list margin width height)))
+
+(defun maybe-invoke-thunk (thunk)
+  (when (functionp thunk)
+    (funcall thunk)))
+
+(defun draw-sudoku-diagram-to-file (filename diagram width height
+                                    &key margin document-thunk page-thunk)
+  (let ((margin (normalize-margin margin)))
+    (validate-margin margin width height)
+    (draw:with-document (:width width :height height)
+      (maybe-invoke-thunk document-thunk)
+      (draw:with-page ()
+        (draw:set-line-width 2)
+        (draw:translate margin margin)
+        (maybe-invoke-thunk page-thunk)
+        (draw:translate 0 (- height (* margin 2)))
+        (draw-sudoku-diagram diagram
+                             (- width (* margin 2))
+                             (- height (* margin 2))))
+      (draw:write-document filename))))

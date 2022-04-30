@@ -1,4 +1,4 @@
-(defpackage #:sudoku-diagrams-pdf
+(defpackage #:sudoku-diagrams-draw
   (:use :cl :sudoku-diagrams)
 
   (:export :points
@@ -18,7 +18,7 @@
 
            :*cell-stroke-rgb*
            :*cell-stroke-width*
-           :*cell-fill-width*
+           :*cell-fill-rgb*
            :*box-stroke-rgb*
            :*box-stroke-width*
            :*grid-stroke-rgb*
@@ -32,5 +32,5 @@
            :*dark-diamond-fill-rgb*
            :*light-diamond-fill-rgb*)
 
-  (:export :sudoku-diagram-as-pdf
-           :sudoku-diagram-to-pdf-file))
+  (:export :draw-sudoku-diagram
+           :draw-sudoku-diagram-to-file))

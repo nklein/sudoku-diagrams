@@ -1,4 +1,4 @@
-(in-package #:sudoku-diagrams-pdf)
+(in-package #:sudoku-diagrams-draw)
 
 (defvar *title-font* "Helvetica")
 (defvar *title-font-rgb* '(0.0 0.0 0.0))

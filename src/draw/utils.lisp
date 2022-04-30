@@ -1,4 +1,4 @@
-(in-package #:sudoku-diagrams-pdf)
+(in-package #:sudoku-diagrams-draw)
 
 (import '(sudoku-diagrams::row-col-index
           sudoku-diagrams::index-row

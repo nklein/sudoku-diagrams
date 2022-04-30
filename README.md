@@ -3,12 +3,13 @@ SUDOKU-DIAGRAMS
 
 This library defines a way to declare sudoku diagrams and export them in various formats.
 
-Currently, the library only supports writing to PDF or to a textual description of the diagram.
+Currently, the library only supports writing to [`DRAW`](https://github.com/nklein/draw)
+or to a textual description of the diagram.
 
 Throughout this document, we use one main example.
 This repository contains [the example as a PDF](./images/sample-output.pdf)
 
-![Example image described below](./images/sample-output-pdf.png)
+![Example image described below](./images/sample-output.png)
 
 Declaring A Diagram
 -------------------
@@ -50,19 +51,29 @@ The output from the above example looks like:
      - Marked with a light-diamond: row 4 column 8, row 4 column 9, and row 5 column 9.
      - Marked with a dark-circle: row 2 column 9, row 3 column 8, row 3 column 9, row 4 column 1, row 4 column 2, and row 5 column 1.
 
-PDF Image
----------
+Output With Draw
+----------------
 
 There are two main functions for writing out diagrams to PDFs:
 
-    (sudoku-diagram-as-pdf diagram width height)
+    (draw-sudoku-diagram diagram width height)
 
-    (sudoku-diagram-to-pdf-file filename diagram width height)
+    (draw-sudoku-diagram-to-file filename diagram width height
+                                 &key margin document-thunk page-thunk)
 
-The first of these is suitable for invoking in the midst of a `CL-PDF` document.
+The first of these is suitable for invoking in the midst of a `DRAW:WITH-PAGE` context.
 The latter of these writes a single diagram to a file.
+
+Both of these must be called from within a `DRAW:WITH-RENDERER` context.
+
+The `DIAGRAM-THUNK` and `PAGE-THUNK` are zero-argument functions.
+The `DIAGRAM-THUNK` (if given) is invoked in the `DRAW:WITH-DOCUMENT` context
+but before the `DRAW:WITH-PAGE` context and the `PAGE-THUNK` (if given) is
+invoked in the `DRAW:WITH-PAGE` context after all has been adjusted for the
+margins.
+
 The diagram is made as large as it can be and still fit in the given width and
-height constraints.
+height (less the margin) constraints.
 If there is space left over in either width or height, the diagram will be
 centered in that space.
 
@@ -72,10 +83,11 @@ There are some utility functions that are useful in specifying sizes:
 
     (inches x)
 
-To write out a diagram centered in a 4-inch by 5-inch diagram in the midst of
-a `CL-PDF` document, you would do:
+To write out a diagram centered in a 4-inch by 5-inch diagram to a PDF file
+you could do:
 
-    (sudoku-diagram-as-pdf diagram (inches 4) (inches 5))
+    (draw:with-renderer (draw-pdf:pdf-renderer)
+      (draw-sudoku-diagram-to-file filename diagram (inches 4) (inches 5)))
 
 There are a variety of parameters one can override to customize the diagram.
 The `-rgb` values are given as a three-element list `'(r g b)` where each

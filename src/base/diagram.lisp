@@ -73,14 +73,3 @@
                (format stream " - Marked with a ~A: ~A.~%"
                        mark
                        (format-list areas)))))))
-
-(defparameter *d* (make-sudoku-diagram :name "Toroidal Miracle Sudoku"
-                                       :givens '(1 :r6c6)
-                                       :highlighted '(:b1 :b2c4 :b2c5 :b3
-                                                      :b4r4 :b4r5 :r4c8 :r4c9 :r5c9
-                                                      :b7 :r8c4 :r9c4 :r9c5 :r7c9 :r8c8 :r8c9 :b9r9)
-                                       :marked '("light-diamond" (:r4c8 :r4c9 :r5c9)
-                                                 "dark-circle" (:r2c9 :r3c8 :r3c9
-                                                                :r4c1 :r4c2 :r5c1))
-                                       :row-labels '("r1" "r2" "r3" "r4" "r5" "r6" "r7" "r8" "r9")
-                                       :column-labels '("c1" "c2" "c3" "c4" "c5" "c6" "c7" "c8" "c9")))
